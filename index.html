@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Holeni Pharmacy - Staff & Salary</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#f3eefb;padding:20px}
+.container{max-width:1000px;margin:auto}
+header{background:#6a1b9a;color:white;padding:25px;border-radius:15px;text-align:center;margin-bottom:20px}
+header h1{font-size:28px}
+header p{opacity:.9;margin-top:5px}
+.grid{display:grid;grid-template-columns:1fr 1.2fr;gap:20px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.card{background:white;padding:20px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.08)}
+.card h2{color:#6a1b9a;margin-bottom:15px;font-size:19px}
+label{display:block;margin:12px 0 5px;color:#333;font-weight:bold;font-size:14px}
+input,select{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:15px}
+button{width:100%;padding:13px;border:none;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;margin-top:15px}
+.btn-add{background:#6a1b9a;color:white}
+.btn-clear{background:#e0e0e0;color:#333}
+.btn-print{background:#2e7d32;color:white}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+th,td{padding:10px;text-align:left;border-bottom:1px solid #eee}
+th{color:#6a1b9a}
+.remove{color:red;cursor:pointer;font-weight:bold}
+.badge{background:#e8f5e9;color:#2e7d32;padding:4px 10px;border-radius:20px;font-size:12px}
+.count{background:#6a1b9a;color:white;padding:4px 12px;border-radius:20px;font-size:13px}
+.totals{margin-top:15px}
+.totals div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #ddd}
+.totals .grand{font-size:19px;font-weight:bold;color:#6a1b9a;border:none}
+.preview{background:#f3eefb;padding:12px;border-radius:8px;margin-top:12px;text-align:center;font-weight:bold;color:#6a1b9a}
+.footer{text-align:center;margin-top:20px;color:#888;font-size:13px}
+@media print{body{background:white}.btn-add,.btn-clear,.btn-print{display:none!important}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>💊 Holeni Pharmacy</h1>
+<p>Staff & Salary Calculator | Manager: Letshela</p>
+<span class="badge">● System Online</span>
+</header>
+<div class="grid">
+<div class="card">
+<h2>➕ Add Staff Member</h2>
+<label>Full Name</label>
+<input type="text" id="sName" placeholder="e.g. Naledi Khumalo">
+<label>Role</label>
+<select id="sRole" onchange="fillRate()">
+<option value="">-- Select Role --</option>
+<option value="Pharmacist|180">Pharmacist - R180/hr</option>
+<option value="Cashier|85">Cashier - R85/hr</option>
+<option value="Nurse|120">Nurse - R120/hr</option>
+<option value="Cleaner|65">Cleaner - R65/hr</option>
+<option value="Driver|95">Driver - R95/hr</option>
+<option value="Manager|200">Manager - R200/hr</option>
+</select>
+<label>Rate per Hour (R)</label>
+<input type="number" id="sRate" placeholder="e.g. 85" oninput="calcPreview()">
+<label>Hours Worked (This Month)</label>
+<input type="number" id="sHours" placeholder="e.g. 160" oninput="calcPreview()">
+<div class="preview" id="preview">Pay: R0.00</div>
+<button class="btn-add" onclick="addStaff()">Add to Payroll</button>
+<button class="btn-clear" onclick="clearAll()">Clear All Staff</button>
+</div>
+<div class="card">
+<h2>👥 Payroll List <span class="count" id="count">0 Staff</span></h2>
+<p style="font-size:13px;color:#666">Month: <span id="date"></span></p>
+<table>
+<thead><tr><th>Name</th><th>Role</th><th>Hours</th><th>Rate</th><th>Pay</th><th></th></tr></thead>
+<tbody id="list"><tr><td colspan="6" style="text-align:center;color:#999;padding:20px">No staff yet. Add one.</td></tr></tbody>
+</table>
+<div class="totals">
+<div><span>Total Hours:</span><span id="totalHours">0 hrs</span></div>
+<div><span>Total Gross Pay:</span><span id="totalGross">R0.00</span></div>
+<div><span>UIF (1%):</span><span id="uif">R0.00</span></div>
+<div class="grand"><span>TOTAL TO PAY:</span><span id="totalNet">R0.00</span></div>
+</div>
+<button class="btn-print" onclick="window.print()">🖨️ Print Payroll</button>
+</div>
+</div>
+<p class="footer">Holeni Pharmacy - Centurion | Tel: 082 431 1945 | Payroll is confidential</p>
+</div>
+<script>
+let staff = JSON.parse(localStorage.getItem('holeni_staff')||'[]');
+document.getElementById('date').textContent=new Date().toLocaleString('en-ZA',{month:'long',year:'numeric'});
+function fillRate(){
+  let v=document.getElementById('sRole').value;
+  if(v){document.getElementById('sRate').value=v.split('|')[1];calcPreview();}
+}
+function calcPreview(){
+  let r=parseFloat(document.getElementById('sRate').value)||0;
+  let h=parseFloat(document.getElementById('sHours').value)||0;
+  document.getElementById('preview').textContent='Pay: R'+(r*h).toFixed(2);
+}
+function addStaff(){
+  let name=document.getElementById('sName').value.trim();
+  let role=document.getElementById('sRole').value.split('|')[0];
+  let rate=parseFloat(document.getElementById('sRate').value);
+  let hours=parseFloat(document.getElementById('sHours').value);
+  if(!name||!role||!rate||!hours){alert('Please fill Name, Role, Rate and Hours');return;}
+  staff.unshift({name,role,rate,hours,pay:rate*hours});
+  localStorage.setItem('holeni_staff',JSON.stringify(staff));
+  document.getElementById('sName').value='';
+  document.getElementById('sRole').value='';
+  document.getElementById('sRate').value='';
+  document.getElementById('sHours').value='';
+  document.getElementById('preview').textContent='Pay: R0.00';
+  render();
+}
+function removeStaff(i){staff.splice(i,1);localStorage.setItem('holeni_staff',JSON.stringify(staff));render();}
+function clearAll(){if(confirm('Delete ALL staff records?')){staff=[];localStorage.removeItem('holeni_staff');render();}}
+function render(){
+  let list=document.getElementById('list');
+  document.getElementById('count').textContent=staff.length+' Staff';
+  if(staff.length===0){list.innerHTML='<tr><td colspan="6" style="text-align:center;color:#999;padding:20px">No staff yet. Add one.</td></tr>';}
+  else{list.innerHTML=staff.map((s,i)=>`<tr><td><b>${s.name}</b></td><td>${s.role}</td><td>${s.hours}</td><td>R${s.rate}</td><td><b>R${s.pay.toFixed(2)}</b></td><td class="remove" onclick="removeStaff(${i})">✕</td></tr>`).join('');}
+  let th=staff.reduce((a,s)=>a+s.hours,0);
+  let tg=staff.reduce((a,s)=>a+s.pay,0);
+  let uif=tg*0.01;
+  document.getElementById('totalHours').textContent=th+' hrs';
+  document.getElementById('totalGross').textContent='R'+tg.toFixed(2);
+  document.getElementById('uif').textContent='R'+uif.toFixed(2);
+  document.getElementById('totalNet').textContent='R'+(tg-uif).toFixed(2);
+}
+render();
+</script>
+</body>
+</html>
